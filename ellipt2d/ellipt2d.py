@@ -4,11 +4,10 @@ import numpy
 class Ellipt2d(object):
     """Elliptic solver class -div f grad v + g v = s"""
 
-    def __init__(self, grid, fxx, fyy, g, s):
+    def __init__(self, grid, f, g, s):
         """Constructor
         :param grid: instance of pytriangle
-        :param fxx: cell array
-        :param fyy: cell array
+        :param f: cell array
         :param g: cell array
         :param s: nodal array
         """
@@ -21,61 +20,65 @@ class Ellipt2d(object):
 
         # build the matrix system
 
+        oneSixth = 1./6.
+        oneTwelveth = 1/12.
+        massMat = numpy.array([[oneSixth, oneTwelveth, oneTwelveth],
+            	               [oneTwelveth, oneSixth, oneTwelveth],[
+            	               [oneTwelveth, oneTwelveth, oneSixth]]])
+
+        sourceVec = numpy.array([oneSixth, oneSixth, oneSixth])
+
         icell = 0
         for cell in grid.get_triangle():
 
+        	# get the cell values
+        	fcell = f[icell]
+        	gcell = g[icell]
+        	scell = s[icell]
+
             # get the node indices
-            ia, ib, ic = cell[:3]
+            i0, i1, i2 = cell[:3]
+
+            indexMat = numpy.array([[(i0, i0), (i0, i1), (i0, i2)],
+            	                    [(i1, i0), (i1, i1), (i1, i2)],
+            	                    [(i2, i0), (i2, i1), (i2, i2)]])
 
             # get the coordinates of each node
-            xa, ya = nodes[ia][:2]
-            xb, yb = nodes[ib][:2]
-            xc, yc = nodes[ic][:2]
+            x0, y0 = nodes[i0][:2]
+            x1, y1 = nodes[i1][:2]
+            x2, y2 = nodes[i2][:2]
 
-            xba = xb - xa
-            xca = xc - xa
-            yba = yb - ya
-            yca = yc - ya
-
-            xcb = xc - xb
-            ycb = yc - yb
+            y12 = y1 - y2
+            y20 = y2 - y0
+            y01 = y0 - y1
+            x12 = x1 - x2
+            x20 = x2 - x0
+            x01 = x0 - x1
 
             # twice the area of the cell
-            jac = xba*yca - xca*yba
+            jac = -x01*y20 + x20*y01
+            twoJac = 2.*jac
+            halfJac = 0.5*jac # triangle area
+
+            # stiffness matrix
+            # https://www.math.tu-berlin.de/fileadmin/i26_ng-schmidt/Vorlesungen/IntroductionFEM_SS14/Chap3.pdf
+            dmat = numpy.array([[y12, y20, y01], [x12, x20, x01]])
+            stiffness = (fcell/twoJac) * dmat.transpose().dot(dmat)
+
+            # mass term
+            mass = halfJac*gcell*massMat
 
             # source term
-            sa, sb, sc = s[ia], s[ib], s[ic]
-            self.b[ia] += jac*(sa/12. + sb/24. + sc/24.)
-            self.b[ib] += jac*(sb/12. + sc/24. + sa/24.)
-            self.b[ic] += jac*(sc/12. + sa/24. + sb/24.)
+            source = jac*scell*sourceVec
 
-
-            # g term
-            gcell = g[icell]
-            self.amat[ia, ia] = self.amat.get((ia, ia), 0.) + gcell*jac/12.
-            self.amat[ia, ib] = self.amat.get((ia, ib), 0.) + gcell*jac/24.
-            self.amat[ia, ic] = self.amat.get((ia, ic), 0.) + gcell*jac/24.
-            self.amat[ib, ib] = self.amat.get((ib, ib), 0.) + gcell*jac/12.
-            self.amat[ib, ic] = self.amat.get((ib, ic), 0.) + gcell*jac/24.
-            self.amat[ic, ic] = self.amat.get((ic, ic), 0.) + gcell*jac/12.
-
-            # f terms
-            fxxcell = fxx[icell]
-            fyycell = fyy[icell]
-            self.amat[ia, ia] += 0.5 * ( fxxcell*ycb*ycb + fyycell*xcb*xcb ) / jac
-            self.amat[ia, ib] += 0.5 * (-fxxcell*yca*ycb + fyycell*xca*xcb ) / jac
-            self.amat[ia, ic] += 0.5 * ( fxxcell*yba*ycb + fyycell*xba*xcb ) / jac
-
-            self.amat[ib, ib] += 0.5 * ( fxxcell*yca*yca + fyycell*xca*xca ) / jac
-            self.amat[ib, ic] += 0.5 * (-fxxcell*yca*yba - fyycell*xca*xba ) / jac
-
-            self.amat[ic, ic] += 0.5 * ( fxxcell*yba*yba + fyycell*xba*xba ) / jac
-
-
-            # symetric terms
-            self.amat[ib, ia] = self.amat[ia, ib]
-            self.amat[ic, ia] = self.amat[ia, ic]
-            self.amat[ic, ib] = self.amat[ib, ic]
+            for k0 in range(3):
+            	self.b[i0] = source[k0]
+            	for k1 in range(k0, 3):
+            		j0, j1 = indexMat[k0, k1]
+            		self.amat[j0, j1] = self.amat.get((j0, j1), 0.) + \
+            		     stiffness[k0, k1] + mass[k0, k1]
+            		# symmetric term
+            		self.amat[j1, j0] = self.amat[j0, j1]
 
             icell += 1
 
