@@ -1,4 +1,5 @@
 import numpy
+from scipy.sparse import csc_matrix, linalg
 
 
 class Ellipt2d(object):
@@ -23,25 +24,25 @@ class Ellipt2d(object):
         oneSixth = 1./6.
         oneTwelveth = 1/12.
         massMat = numpy.array([[oneSixth, oneTwelveth, oneTwelveth],
-            	               [oneTwelveth, oneSixth, oneTwelveth],[
-            	               [oneTwelveth, oneTwelveth, oneSixth]]])
+                               [oneTwelveth, oneSixth, oneTwelveth],[
+                               [oneTwelveth, oneTwelveth, oneSixth]]])
 
         sourceVec = numpy.array([oneSixth, oneSixth, oneSixth])
 
         icell = 0
         for cell in grid.get_triangle():
 
-        	# get the cell values
-        	fcell = f[icell]
-        	gcell = g[icell]
-        	scell = s[icell]
+            # get the cell values
+            fcell = f[icell]
+            gcell = g[icell]
+            scell = s[icell]
 
             # get the node indices
             i0, i1, i2 = cell[:3]
 
             indexMat = numpy.array([[(i0, i0), (i0, i1), (i0, i2)],
-            	                    [(i1, i0), (i1, i1), (i1, i2)],
-            	                    [(i2, i0), (i2, i1), (i2, i2)]])
+                                    [(i1, i0), (i1, i1), (i1, i2)],
+                                    [(i2, i0), (i2, i1), (i2, i2)]])
 
             # get the coordinates of each node
             x0, y0 = nodes[i0][:2]
@@ -72,13 +73,13 @@ class Ellipt2d(object):
             source = jac*scell*sourceVec
 
             for k0 in range(3):
-            	self.b[i0] = source[k0]
-            	for k1 in range(k0, 3):
-            		j0, j1 = indexMat[k0, k1]
-            		self.amat[j0, j1] = self.amat.get((j0, j1), 0.) + \
-            		     stiffness[k0, k1] + mass[k0, k1]
-            		# symmetric term
-            		self.amat[j1, j0] = self.amat[j0, j1]
+                self.b[i0] = source[k0]
+                for k1 in range(k0, 3):
+                    j0, j1 = indexMat[k0, k1]
+                    self.amat[j0, j1] = self.amat.get((j0, j1), 0.) + \
+                         stiffness[k0, k1] + mass[k0, k1]
+                    # symmetric term
+                    self.amat[j1, j0] = self.amat[j0, j1]
 
             icell += 1
 
@@ -92,7 +93,13 @@ class Ellipt2d(object):
 
 
     def solve(self):
-        pass
+        """Solve system
+        :returns solution vector
+        """
+        indices = numpy.array(self.amat.keys(), numpy.int32)
+        lumat = splu(csc_matrix(self.amat.values(), indices))
+        return lumat.dot(self.b)
+
 
 
     def saveVTK(self, filename):
