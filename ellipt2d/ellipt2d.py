@@ -1,5 +1,6 @@
 import numpy
 from scipy.sparse import csc_matrix, linalg
+import time
 
 
 class Ellipt2d(object):
@@ -17,6 +18,9 @@ class Ellipt2d(object):
         :param s: cell array
         """
         self.grid = grid
+
+        # node: (x, y)
+        self.node = {}
 
         nodes = grid.get_nodes()
 
@@ -65,6 +69,9 @@ class Ellipt2d(object):
             x0, y0 = nodes[i0][0][:2]
             x1, y1 = nodes[i1][0][:2]
             x2, y2 = nodes[i2][0][:2]
+            self.node[i0] = numpy.array((x0, y0))
+            self.node[i1] = numpy.array((x1, y1))
+            self.node[i2] = numpy.array((x2, y2))
 
             y12 = y1 - y2
             y20 = y2 - y0
@@ -103,12 +110,59 @@ class Ellipt2d(object):
         self.nsize += 1
 
 
-
-    def applyFluxBoundaryConditions(self, alpha):
-        """Apply flux boundary conditions
-        :param alpha: flux 
+    def getCoords(self, i):
         """
-        pass
+        Get the coordinates of node
+        :param i: node index
+        :returns (x, y) values
+        """
+        return self.node[i]
+
+
+    def setNaturalBoundaryConditions(self, values):
+        """Apply natural boundary conditions n . F grad v = alpha - beta v
+        :param values: dictionary {(i, j): (alpha, beta), ...} with i, j node indices. The order
+                       should counterclockwise for external boundary edges and clockwise for 
+                       internal boundary edges
+        """
+        oneSixth = 1./6.
+        oneThird = 1./3.
+        for ij, ab in values.items():
+
+            i, j = ij
+            aedge, bedge = ab
+
+            # coordinates of the two nodes connecting the edge
+            pi = self.getCoords(i)
+            pj = self.getCoords(j)
+
+            # length of edge
+            ds = numpy.sqrt( (pj - pi).dot(pj - pi) )
+
+            # contribution to the source
+            aval = aedge*ds*0.5
+            self.b[i] += aval
+            self.b[j] += aval
+
+            # contribution to the stiffness matrix
+            bval = bedge*ds*oneSixth
+            self.amat[i, j] += bval
+            self.amat[j, i] += bval
+            aval = bedge*ds*oneThird
+            self.amat[i, i] += bval
+            self.amat[j, j] += bval
+
+
+    def setDirichletBoundaryConditions(self, values):
+        """Apply Dirichlet boundary conditions, forcing the solution to take prescribed values at nodes
+        :param values: dictionary {i: value, ...} with i node indices. Index i could be an internal node.
+        """
+        LARGE = 1.656746e15
+        for i, value in values.items():
+            # in principle we should be setting the row and one and zeros but this requires extracting the 
+            # connectivity of node to neighboring nodes
+            self.amat[i, i] = LARGE
+            self.b[i] = LARGE*value
 
 
     def solve(self):
@@ -120,10 +174,41 @@ class Ellipt2d(object):
         j_inds = [index[1] for index in indices]
         spmat = csc_matrix( (data, (i_inds, j_inds)), shape=(self.nsize, self.nsize))
         lumat = linalg.splu(spmat)
-        return lumat.dot(self.b)
+        return lumat.solve(self.b)
 
 
 
-    def saveVTK(self, filename):
-        pass
+    def saveVTK(self, filename, solution, sol_name='u'):
+        """Save the solution to a VTK file
+        :param filename: file name
+        :param solution: solution vector
+        :param sol_name: solution name
+        """
+        with open(filename, 'w') as f:
+            date = time.ctime( time.time() )
+            nnodes = self.grid.get_num_nodes()
+            ncells = self.grid.get_num_triangles()
+            f.write('# vtk DataFile Version 2.0\n')
+            f.write(f'produced by Ellipt2d on {date}\n')
+            f.write('ASCII\n')
+            f.write('DATASET UNSTRUCTURED_GRID\n')
+            f.write(f'POINTS {nnodes} DOUBLES\n')
+            for node in self.grid.get_nodes():
+                x, y = node[0][:2]
+                f.write(f'{x} {y} 0.0\n')
+            f.write(f'CELLS {ncells} {ncells*4}\n')
+            for cell in self.grid.get_triangles():
+                i0, i1, i2 = cell[:3][0]
+                f.write(f'3 {i0} {i1} {i2}\n')
+            f.write(f'CELL_TYPES {ncells}\n')
+            for i in range(ncells):
+                f.write('5\n')
+            f.write(f'POINT_DATA {nnodes}\n')
+            f.write(f'SCALARS {sol_name} double\n')
+            f.write('LOOKUP_TABLE default\n')
+            for i in range(nnodes):
+                f.write(f'{solution[i]:10.8e}\n')
+
+
+
 
