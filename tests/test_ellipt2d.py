@@ -51,11 +51,12 @@ def test_one_cell_problem(simple_one_cell_mesh):
     cells = simple_one_cell_mesh.get_triangles()
     ncells = len(cells)
     assert ncells == 1
-    f = numpy.ones(ncells, numpy.float64)
+    fxx = fyy = numpy.ones(ncells, numpy.float64)
+    fxy = numpy.zeros(ncells, numpy.float64)
     g = numpy.zeros(ncells, numpy.float64)
     s = numpy.zeros(ncells, numpy.float64)
     s[0] = 1.0
-    problem = Ellipt2d(simple_one_cell_mesh, f=f, g=g, s=s)
+    problem = Ellipt2d(simple_one_cell_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
     EPS = 1.e-10
     # check stiffness matrix
     assert abs(problem.amat[0, 0] - 1) < EPS
@@ -80,11 +81,12 @@ def test_one_cell_problem2(simple_one_cell_mesh2):
     cells = simple_one_cell_mesh2.get_triangles()
     ncells = len(cells)
     assert ncells == 1
-    f = numpy.ones(ncells, numpy.float64)
+    fxx = fyy = numpy.ones(ncells, numpy.float64)
+    fxy = numpy.zeros(ncells, numpy.float64)
     g = numpy.zeros(ncells, numpy.float64)
     s = numpy.zeros(ncells, numpy.float64)
     s[0] = 1.0
-    problem = Ellipt2d(simple_one_cell_mesh2, f=f, g=g, s=s)
+    problem = Ellipt2d(simple_one_cell_mesh2, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
     EPS = 1.e-6
     # check stiffness matrix
     assert abs(problem.amat[0, 0] - 0.657895) < EPS

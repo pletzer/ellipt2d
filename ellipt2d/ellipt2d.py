@@ -3,14 +3,18 @@ from scipy.sparse import csc_matrix, linalg
 
 
 class Ellipt2d(object):
-    """Elliptic solver class -div f grad v + g v = s"""
+    """Elliptic solver class -div F grad v + g v = s with F a 2x2 tensor function
+       and g, s scalar functions
+    """
 
-    def __init__(self, grid, f, g, s):
+    def __init__(self, grid, fxx, fxy, fyy, g, s):
         """Constructor
         :param grid: instance of pytriangle
-        :param f: cell array
+        :param fxx: cell array
+        :param fxy: cell array
+        :param fyy: cell array
         :param g: cell array
-        :param s: nodal array
+        :param s: cell array
         """
         self.grid = grid
 
@@ -36,7 +40,10 @@ class Ellipt2d(object):
         for cell in grid.get_triangles():
 
             # get the cell values
-            fcell = f[icell]
+            fxxcell = fxx[icell]
+            fxycell = fxy[icell]
+            fyycell = fyy[icell]
+            fmat = numpy.array([[fxxcell, fxycell], [fxycell, fyycell]])
             gcell = g[icell]
             scell = s[icell]
 
@@ -74,7 +81,7 @@ class Ellipt2d(object):
             # stiffness matrix
             # https://www.math.tu-berlin.de/fileadmin/i26_ng-schmidt/Vorlesungen/IntroductionFEM_SS14/Chap3.pdf
             dmat = numpy.array([[y12, y20, y01], [x12, x20, x01]])
-            stiffness = (fcell/twoJac) * dmat.transpose().dot(dmat)
+            stiffness = dmat.transpose().dot(fmat).dot(dmat) / twoJac
 
             # mass term
             mass = halfJac*gcell*massMat
