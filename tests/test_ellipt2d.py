@@ -140,6 +140,7 @@ def test_laplacian(square_mesh):
     # assemble the matrix problem
     equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
     nodes = square_mesh.get_nodes()
+    # [(i, x, y), ...]
     boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
     # Dirichlet boundary conditions
     dbSouth = {n[0]: 0.0 for n in boundaryNodes if abs(n[2] - 0.) < 1.e-10}
@@ -153,5 +154,27 @@ def test_laplacian(square_mesh):
     u = equ.solve()
     assert(abs(max(u) - 1.0) < 1.e-10)
     assert(abs(min(u) - 0.0) < 1.e-10)
+
+
+
+def test_exact(square_mesh):
+    # exact solution is x * 2*y
+    num_points = square_mesh.get_num_nodes()
+    num_cells = square_mesh.get_num_triangles()
+    fxx = fyy = numpy.ones(num_cells, numpy.float64)
+    fxy = g = s = numpy.zeros(num_cells, numpy.float64)
+    # assemble the matrix problem
+    equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
+    nodes = square_mesh.get_nodes()
+    # [(i, x, y), ...]
+    boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
+    # Dirichlet boundary conditions
+    # n[0] is the node index, n[1] is x at the node, n[2] is y at the node
+    print(boundaryNodes)
+    db = {n[0]: n[1] + 2*n[2] for n in boundaryNodes}
+    equ.setDirichletBoundaryConditions(db)
+    u = equ.solve()
+    uexact = numpy.array([node[0][0] + 2*node[0][1] for node in square_mesh.get_nodes()])
+    assert(numpy.fabs(u - uexact).sum() < 1.e-10)
 
 
