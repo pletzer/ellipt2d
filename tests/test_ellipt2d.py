@@ -35,6 +35,31 @@ def simple_one_cell_mesh2():
     t.triangulate(area=0.5)
     return t
 
+@pytest.fixture
+def square_mesh():
+    lx, ly = 1.0, 1.0
+    nx1, ny1 = 3, 4
+    nx, ny = nx1 - 1, ny1 - 1
+    dx, dy = lx/float(nx), ly/float(ny)
+    # list of boundary points, going anticlockwise
+    boundpts = [(i*dx, 0.) for i in range(nx)] + \
+               [(lx, j*dy) for j in range(ny)] + \
+               [(lx - i*dx, ly) for i in range(nx)] + \
+               [(0., ly - j*dy) for j in range(ny)]
+    nbound = len(boundpts)
+    # tell the triangulation that these points are on the boundary
+    boundmarks = [1 for i in range(nbound)]
+    # generate segments, anticlockwise
+    boundsegs = [(i, i + 1) for i in range(nbound - 1)] + [(nbound - 1, 0)]
+
+    # triangulate the domain
+    mesh = Triangle()
+    mesh.set_points(boundpts, markers=boundmarks)
+    mesh.set_segments(boundsegs)
+    mesh.triangulate(area=0.1)
+    return mesh
+
+
 def test_one_cell_mesh():
     t = Triangle()
     points = [(0., 0.), (1., 0.), (0., 1.)]
@@ -106,5 +131,27 @@ def test_one_cell_problem2(simple_one_cell_mesh2):
     #solution = problem.solve()
     #assert len(solution) == 3
 
+
+def test_laplacian(square_mesh):
+    num_points = square_mesh.get_num_nodes()
+    num_cells = square_mesh.get_num_triangles()
+    fxx = fyy = numpy.ones(num_cells, numpy.float64)
+    fxy = g = s = numpy.zeros(num_cells, numpy.float64)
+    # assemble the matrix problem
+    equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
+    nodes = square_mesh.get_nodes()
+    boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
+    # Dirichlet boundary conditions
+    dbSouth = {n[0]: 0.0 for n in boundaryNodes if abs(n[2] - 0.) < 1.e-10}
+    dbNorth = {n[0]: 1.0 for n in boundaryNodes if abs(n[2] - 1.) < 1.e-10}
+    dbWest = {n[0]: 0.0 for n in boundaryNodes if abs(n[1] - 0.) < 1.e-10}
+    dbEast = {n[0]: 0.0 for n in boundaryNodes if abs(n[1] - 1.) < 1.e-10}
+    equ.setDirichletBoundaryConditions(dbSouth)
+    equ.setDirichletBoundaryConditions(dbNorth)
+    equ.setDirichletBoundaryConditions(dbWest)
+    equ.setDirichletBoundaryConditions(dbEast)
+    u = equ.solve()
+    assert(abs(max(u) - 1.0) < 1.e-10)
+    assert(abs(min(u) - 0.0) < 1.e-10)
 
 
