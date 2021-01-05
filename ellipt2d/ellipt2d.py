@@ -157,12 +157,13 @@ class Ellipt2d(object):
         """Apply Dirichlet boundary conditions, forcing the solution to take prescribed values at nodes
         :param values: dictionary {i: value, ...} with i node indices. Index i could be an internal node.
         """
-        LARGE = 1.656746e15
-        for i, value in values.items():
-            # in principle we should be setting the row and one and zeros but this requires extracting the 
-            # connectivity of node to neighboring nodes
-            self.amat[i, i] = LARGE
-            self.b[i] = LARGE*value
+        # find all the nodes that share an edge with the values
+        neighbours = {i: [ij[1] for ij in self.amat if ij[0] == i and ij[0] != ij[1]] for i in values}
+        for i, val in values.items():
+            self.amat[i, i] = 1.0
+            self.b[i] = val
+            for j in neighbours[i]:
+                self.amat[i, j] = 0.0
 
 
     def solve(self):
