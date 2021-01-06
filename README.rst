@@ -61,7 +61,6 @@ How to solve an elliptic problem with Ellipt2d
     grid.set_holes([(0., 0.)])
     grid.triangulate()
 
-
 * Create an Ellipt2d instance, here a Laplace operator::
     import ellipt2d
     
@@ -77,6 +76,7 @@ How to solve an elliptic problem with Ellipt2d
     equ = ellipt2d.Ellipt2d(grid=grid, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
   
 * Set the boundary conditions
+
 * Solve the linear system
 
 Credits
