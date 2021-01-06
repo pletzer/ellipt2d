@@ -62,7 +62,20 @@ How to solve an elliptic problem with Ellipt2d
     grid.triangulate()
 
 
-* Create an Ellipt2d instance.
+* Create an Ellipt2d instance::
+    import ellipt2d
+    
+    # - div F . grad u + g = s
+    # F = [[fxx, fxy], [fxy, fyy]] and g are defined on cells and s on nodes
+    # here fxx = fyy = 1 and fxy = g = 0
+    nnodes = grid.get_num_nodes()
+    ncells = grid.get_num_cells()
+    fxx = fyy = numpy.ones(ncells)
+    fxy = g = numpy.zeros(ncells)
+    s = numpy.zeros(nnodes)
+    
+    equ = ellipt2d.Ellipt2d(grid=grid, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
+  
 * Set the boundary conditions
 * Solve the linear system
 
