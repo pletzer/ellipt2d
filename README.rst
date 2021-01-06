@@ -83,7 +83,8 @@ Dirichlet boundary conditions on the outer contour (first nto - 1 points)::
     # gather all the points that are on the external boundary where the radius is larger than 0.31
     nodes = grid.get_nodes() # [(x, y, 0 or 1), ...]
     ext_pts = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(nnodes) if nodes[i][1] == 1 and nodes[i][0][0]**2 + nodes[i][0][1]**2 > 0.31**2]
-    db = {bp[0]: numpy.cos(numpy.arctan2(bp[2], bp[1]) for bp in ext_pts}
+    # Dirichlet BC is cos of angle
+    db = {bp[0]: numpy.cos(numpy.arctan2(bp[2], bp[1])) for bp in ext_pts}
     equ.setDirichletBoundaryConditions(db)
 
 Solve the linear system::
