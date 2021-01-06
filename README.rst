@@ -35,23 +35,22 @@ How to solve an elliptic problem with Ellipt2d
 
 * Define the domain. We recommend to use the pytriangle package to triangule a domain. This involves specifying 
   boundary points and segments. If there are holes in the domain, then you'll need to specify those as well. We'll 
-  show here the generation of a grid on an annulus as an example
-.. code-block:: python
-import triangle
-import numpy
-grid = triangle.Triangle()
-nto, nti = 16, 8
-dto, dti = 2*numpy.pi / nto, 2*numpy.pi / nti
-to = numpy.linspace(0., 2*numpy.pi - dto, nto)
-ti = numpy.linspace(0., -2*numpy.pi - dti, nti)
-bound_pts = [(numpy.cos(t), numpy.sin(t)) for t in to]
-bound_segs = [(i, i+1) for i in range(nto)] + [(nto, 0)] # close the contour
-bound_pts += [(0.3*numpy.cos(t), 0.3*numpy.sin(t)) for t in ti]
-bound_seg += [(i, i+1) for i in range(nto + 1, nto + 1 + nti)] + [(nto + 1 + nti, nto + 1)]
-grid.set_points(bound_pts)
-grid.set_segments(bound_seg)
-grid.set_holes([(0., 0.)])
-grid.triangulate()
+  show here the generation of a grid on an annulus as an example::
+    import triangle
+    import numpy
+    grid = triangle.Triangle()
+    nto, nti = 16, 8
+    dto, dti = 2*numpy.pi / nto, 2*numpy.pi / nti
+    to = numpy.linspace(0., 2*numpy.pi - dto, nto)
+    ti = numpy.linspace(0., -2*numpy.pi - dti, nti)
+    bound_pts = [(numpy.cos(t), numpy.sin(t)) for t in to]
+    bound_segs = [(i, i+1) for i in range(nto)] + [(nto, 0)] # close the contour
+    bound_pts += [(0.3*numpy.cos(t), 0.3*numpy.sin(t)) for t in ti]
+    bound_seg += [(i, i+1) for i in range(nto + 1, nto + 1 + nti)] + [(nto + 1 + nti, nto + 1)]
+    grid.set_points(bound_pts)
+    grid.set_segments(bound_seg)
+    grid.set_holes([(0., 0.)])
+    grid.triangulate()
 
 
 * Create an Ellipt2d instance.
