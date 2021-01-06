@@ -48,11 +48,11 @@ How to solve an elliptic problem with Ellipt2d
     
     # outer boundary, points and segments go counterclockwise
     bound_pts = [(numpy.cos(t), numpy.sin(t)) for t in to]
-    bound_seg = [(i, i + 1) for i in range(nto)] + [(nto - 1, 0)] # close the contour
+    bound_seg = [(i, i + 1) for i in range(nto - 1)] + [(nto - 1, 0)] # close the contour
     
     # add the inner boundary, points and segments go clockwise
     bound_pts += [(0.3*numpy.cos(t), 0.3*numpy.sin(t)) for t in ti]
-    bound_seg += [(i, i+1) for i in range(nto, nto + nti)] + [(nto + nti - 1, nto)]
+    bound_seg += [(i, i+1) for i in range(nto, nto + nti - 1)] + [(nto + nti - 1, nto)]
     
     # now create the triangulation
     grid = triangle.Triangle()
