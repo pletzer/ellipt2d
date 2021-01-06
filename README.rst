@@ -38,15 +38,24 @@ How to solve an elliptic problem with Ellipt2d
   show here the generation of a grid on an annulus as an example::
     import triangle
     import numpy
-    grid = triangle.Triangle()
+    
+    # number of outer and inner poloidal points
     nto, nti = 16, 8
+    
     dto, dti = 2*numpy.pi / nto, 2*numpy.pi / nti
     to = numpy.linspace(0., 2*numpy.pi - dto, nto)
-    ti = numpy.linspace(0., -2*numpy.pi - dti, nti)
+    ti = numpy.linspace(0., 2*numpy.pi - dti, nti)
+    
+    # outer boundary, points and segments go counterclockwise
     bound_pts = [(numpy.cos(t), numpy.sin(t)) for t in to]
-    bound_seg = [(i, i+1) for i in range(nto)] + [(nto, 0)] # close the contour
+    bound_seg = [(i, i + 1) for i in range(nto)] + [(nto - 1, 0)] # close the contour
+    
+    # add the inner boundary, points and segments go clockwise
     bound_pts += [(0.3*numpy.cos(t), 0.3*numpy.sin(t)) for t in ti]
-    bound_seg += [(i, i+1) for i in range(nto + 1, nto + 1 + nti)] + [(nto + 1 + nti, nto + 1)]
+    bound_seg += [(i, i+1) for i in range(nto, nto + nti)] + [(nto + nti - 1, nto)]
+    
+    # now create the triangulation
+    grid = triangle.Triangle()
     grid.set_points(bound_pts)
     grid.set_segments(bound_seg)
     grid.set_holes([(0., 0.)])
