@@ -33,9 +33,10 @@ Features
 How to solve an elliptic problem with Ellipt2d
 ----------------------------------------------
 
-* Define the domain. We recommend to use the pytriangle package to triangule a domain. This involves specifying 
-  boundary points and segments. If there are holes in the domain, then you'll need to specify those as well. We'll 
-  show here the generation of a grid on an annulus as an example::
+Define the domain. We recommend to use the pytriangle package to triangule a domain. This involves specifying 
+boundary points and segments. If there are holes in the domain, then you'll need to specify those as well. We'll 
+show here the generation of a grid on an annulus as an example::
+
     import triangle
     import numpy
     
@@ -61,7 +62,8 @@ How to solve an elliptic problem with Ellipt2d
     grid.set_holes([(0., 0.)])
     grid.triangulate()
 
-* Create an Ellipt2d instance, here a Laplace operator::
+Create an Ellipt2d instance, here a Laplace operator::
+
     import ellipt2d
     
     # - div F . grad u + g = s
