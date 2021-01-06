@@ -77,9 +77,24 @@ Create an Ellipt2d instance, here a Laplace operator::
     
     equ = ellipt2d.Ellipt2d(grid=grid, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
   
-* Set the boundary conditions
+Set the boundary conditions. You only need to specify boundary conditions if they are different from the zero flux boundary conditions. Here we specify the 
+Dirichlet boundary conditions on the outer contour (first nto - 1 points)::
 
-* Solve the linear system
+    # gather all the points that are on the external boundary where the radius is larger than 0.31
+    nodes = grid.get_nodes() # [(x, y, 0 or 1), ...]
+    ext_pts = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(nnodes) if nodes[i][1] == 1 and nodes[i][0][0]**2 + nodes[i][0][1]**2 > 0.31**2]
+    db = {bp[0]: numpy.cos(numpy.arctan2(bp[2], bp[1]) for bp in ext_pts}
+    equ.setDirichletBoundaryConditions(db)
+
+Solve the linear system::
+
+    u = equ.solve()
+    
+Save the solution in a VTK file for plotting with Paraview or VisIt::
+
+    equ.saveVTK(filename='sol.vtk', solution=u, sol_name='u')
+    
+    
 
 Credits
 -------
