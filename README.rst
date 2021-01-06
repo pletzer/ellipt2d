@@ -62,7 +62,7 @@ How to solve an elliptic problem with Ellipt2d
     grid.triangulate()
 
 
-* Create an Ellipt2d instance::
+* Create an Ellipt2d instance, here a Laplace operator::
     import ellipt2d
     
     # - div F . grad u + g = s
