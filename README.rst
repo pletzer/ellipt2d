@@ -95,7 +95,8 @@ Save the solution in a VTK file for plotting with Paraview or VisIt::
 
     equ.saveVTK(filename='sol.vtk', solution=u, sol_name='u')
     
-    
+.. image:: images/sol.png
+   :width: 600    
 
 Credits
 -------
