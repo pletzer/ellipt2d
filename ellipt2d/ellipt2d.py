@@ -15,9 +15,19 @@ class Ellipt2d(object):
         :param fxy: cell array
         :param fyy: cell array
         :param g: cell array
-        :param s: cell array
+        :param s: nodal array
         """
         self.grid = grid
+
+        nnodes = grid.get_num_nodes()
+        ncells = grid.get_num_triangles()
+
+        if not (len(fxx) == len(fxy) == len(fyy) == len(g) == ncells):
+            raise RuntimeError( \
+                f'ERROR: size of fxx, fxy, fxy, g ({len(fxx)}, {len(fxy)}, {len(fyy)}, {len(g)}) must be number of cells {ncells}')
+
+        if len(s) != nnodes:
+            raise RuntimeError(f'ERROR: size of s ({len(s)}) must be number of nodes {nnodes}')
 
         # node: (x, y)
         self.node = {}
@@ -28,14 +38,9 @@ class Ellipt2d(object):
         self.b = numpy.zeros((len(nodes), ), numpy.float64)
 
         # build the matrix system
-
-        oneSixth = 1./6.
-        oneTwelveth = 1/12.
-        massMat = oneTwelveth * numpy.ones((3, 3), numpy.float64)
-        for j in range(3):
-            massMat[j, j] = oneSixth
-
-        sourceVec = numpy.array([oneSixth, oneSixth, oneSixth])
+        massMat = numpy.array([[2., 1., 1.], 
+                               [1., 2., 1.],
+                               [1., 1., 2.]], numpy.float64) / 24.
 
         indexMat = numpy.zeros((3, 3, 2), numpy.int32)
 
@@ -49,7 +54,6 @@ class Ellipt2d(object):
             fyycell = fyy[icell]
             fmat = numpy.array([[fxxcell, fxycell], [fxycell, fyycell]])
             gcell = g[icell]
-            scell = s[icell]
 
             # get the node indices
             i0, i1, i2 = cell[:3][0]
@@ -83,7 +87,6 @@ class Ellipt2d(object):
             # twice the area of the cell
             jac = -x01*y20 + x20*y01
             twoJac = 2.*jac
-            halfJac = 0.5*jac # triangle area
 
             # stiffness matrix
             # https://www.math.tu-berlin.de/fileadmin/i26_ng-schmidt/Vorlesungen/IntroductionFEM_SS14/Chap3.pdf
@@ -91,19 +94,22 @@ class Ellipt2d(object):
             stiffness = dmat.transpose().dot(fmat).dot(dmat) / twoJac
 
             # mass term
-            mass = halfJac*gcell*massMat
-
-            # source term
-            source = jac*scell*sourceVec
+            mass = jac*massMat
 
             for k0 in range(3):
-                self.b[i0] = source[k0]
-                for k1 in range(k0, 3):
+                for k1 in range(3):
+
+                    # the node indices
                     j0, j1 = indexMat[k0, k1]
+
+                    m = mass[k0, k1]
+
                     self.amat[j0, j1] = self.amat.get((j0, j1), 0.) + \
-                         stiffness[k0, k1] + mass[k0, k1]
-                    # symmetric term
-                    self.amat[j1, j0] = self.amat[j0, j1]
+                         stiffness[k0, k1] + gcell*mass[k0, k1]
+
+                    # source
+                    self.b[j0] += s[j1]*m
+
 
             icell += 1
 

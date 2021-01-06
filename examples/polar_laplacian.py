@@ -71,7 +71,8 @@ for icell in range(len(cells)):
     fxx[icell] = xm
     fyy[icell] = 1.0/xm
 
-fxy = g = s = numpy.zeros(num_cells, numpy.float64)
+fxy = g = numpy.zeros(num_cells, numpy.float64)
+s = numpy.zeros(num_points, numpy.float64)
 
 # assemble the matrix problem
 equ = ellipt2d.Ellipt2d(mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
