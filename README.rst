@@ -44,7 +44,7 @@ How to solve an elliptic problem with Ellipt2d
     to = numpy.linspace(0., 2*numpy.pi - dto, nto)
     ti = numpy.linspace(0., -2*numpy.pi - dti, nti)
     bound_pts = [(numpy.cos(t), numpy.sin(t)) for t in to]
-    bound_segs = [(i, i+1) for i in range(nto)] + [(nto, 0)] # close the contour
+    bound_seg = [(i, i+1) for i in range(nto)] + [(nto, 0)] # close the contour
     bound_pts += [(0.3*numpy.cos(t), 0.3*numpy.sin(t)) for t in ti]
     bound_seg += [(i, i+1) for i in range(nto + 1, nto + 1 + nti)] + [(nto + 1 + nti, nto + 1)]
     grid.set_points(bound_pts)
