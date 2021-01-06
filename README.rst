@@ -70,7 +70,7 @@ Create an Ellipt2d instance, here a Laplace operator::
     # F = [[fxx, fxy], [fxy, fyy]] and g are defined on cells and s on nodes
     # here fxx = fyy = 1 and fxy = g = 0
     nnodes = grid.get_num_nodes()
-    ncells = grid.get_num_cells()
+    ncells = grid.get_num_triangles()
     fxx = fyy = numpy.ones(ncells)
     fxy = g = numpy.zeros(ncells)
     s = numpy.zeros(nnodes)
