@@ -69,7 +69,7 @@ Create an Ellipt2d instance, here a Laplace operator::
     # - div F . grad u + g = s
     # F = [[fxx, fxy], [fxy, fyy]] and g are defined on cells and s on nodes
     # here fxx = fyy = 1 and fxy = g = 0
-    nnodes = grid.get_num_nodes()
+    nnodes = grid.get_num_points()
     ncells = grid.get_num_triangles()
     fxx = fyy = numpy.ones(ncells)
     fxy = g = numpy.zeros(ncells)
@@ -81,7 +81,7 @@ Set the boundary conditions. You only need to specify boundary conditions if the
 Dirichlet boundary conditions on the outer contour (first nto - 1 points)::
 
     # gather all the points that are on the external boundary where the radius is larger than 0.31
-    nodes = grid.get_nodes() # [(x, y, 0 or 1), ...]
+    nodes = grid.get_points() # [(x, y, 0 or 1), ...]
     ext_pts = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(nnodes) if nodes[i][1] == 1 and nodes[i][0][0]**2 + nodes[i][0][1]**2 > 0.31**2]
     # Dirichlet BC is cos of angle
     db = {bp[0]: numpy.cos(numpy.arctan2(bp[2], bp[1])) for bp in ext_pts}

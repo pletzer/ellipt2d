@@ -74,7 +74,7 @@ def test_one_cell_mesh():
 
 def test_one_cell_problem(simple_one_cell_mesh):
     cells = simple_one_cell_mesh.get_triangles()
-    npoints = simple_one_cell_mesh.get_num_nodes()
+    npoints = simple_one_cell_mesh.get_num_points()
     ncells = len(cells)
     assert ncells == 1
     fxx = fyy = numpy.ones(ncells, numpy.float64)
@@ -105,7 +105,7 @@ def test_one_cell_problem(simple_one_cell_mesh):
 
 def test_one_cell_problem2(simple_one_cell_mesh2):
     cells = simple_one_cell_mesh2.get_triangles()
-    npoints = simple_one_cell_mesh2.get_num_nodes()
+    npoints = simple_one_cell_mesh2.get_num_points()
     ncells = len(cells)
     assert ncells == 1
     fxx = fyy = numpy.ones(ncells, numpy.float64)
@@ -128,7 +128,7 @@ def test_one_cell_problem2(simple_one_cell_mesh2):
         for j in range(i + 1, 3):
             assert abs(problem.amat[i, j] - problem.amat[j, i]) < EPS
     # check the loading term
-    vertices = numpy.array([(n[0][0], n[0][1], 0.0) for n in simple_one_cell_mesh2.get_nodes()])
+    vertices = numpy.array([(n[0][0], n[0][1], 0.0) for n in simple_one_cell_mesh2.get_points()])
     jac = numpy.dot((0., 0., 1.), numpy.cross(vertices[1] - vertices[0], vertices[2] - vertices[0]))
     assert abs(problem.b[0] - jac*7./24.) < EPS
     assert abs(problem.b[1] - jac*1./3.) < EPS
@@ -136,14 +136,14 @@ def test_one_cell_problem2(simple_one_cell_mesh2):
 
 
 def test_laplacian(square_mesh):
-    num_points = square_mesh.get_num_nodes()
+    num_points = square_mesh.get_num_points()
     num_cells = square_mesh.get_num_triangles()
     fxx = fyy = numpy.ones(num_cells, numpy.float64)
     fxy = g = numpy.zeros(num_cells, numpy.float64)
     s = numpy.zeros(num_points, numpy.float64)
     # assemble the matrix problem
     equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
-    nodes = square_mesh.get_nodes()
+    nodes = square_mesh.get_points()
     # [(i, x, y), ...]
     boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
     # Dirichlet boundary conditions
@@ -163,14 +163,14 @@ def test_laplacian(square_mesh):
 
 def test_exact(square_mesh):
     # exact solution is x * 2*y
-    num_points = square_mesh.get_num_nodes()
+    num_points = square_mesh.get_num_points()
     num_cells = square_mesh.get_num_triangles()
     fxx = fyy = numpy.ones(num_cells, numpy.float64)
     fxy = g = numpy.zeros(num_cells, numpy.float64)
     s = numpy.zeros(num_points, numpy.float64)
     # assemble the matrix problem
     equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
-    nodes = square_mesh.get_nodes()
+    nodes = square_mesh.get_points()
     # [(i, x, y), ...]
     boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
     # Dirichlet boundary conditions
@@ -179,17 +179,17 @@ def test_exact(square_mesh):
     db = {n[0]: n[1] + 2*n[2] for n in boundaryNodes}
     equ.setDirichletBoundaryConditions(db)
     u = equ.solve()
-    uexact = numpy.array([node[0][0] + 2*node[0][1] for node in square_mesh.get_nodes()])
+    uexact = numpy.array([node[0][0] + 2*node[0][1] for node in square_mesh.get_points()])
     assert(numpy.fabs(u - uexact).sum() < 1.e-10)
 
 
 def test_exact_with_s(square_mesh):
     # exact solution is x * 2*y
-    nodes = square_mesh.get_nodes()
+    nodes = square_mesh.get_points()
     x, y = numpy.array([n[0][0] for n in nodes]), numpy.array([n[0][1] for n in nodes])
     cells = square_mesh.get_triangles()
 
-    num_points = square_mesh.get_num_nodes()
+    num_points = square_mesh.get_num_points()
     num_cells = square_mesh.get_num_triangles()
     fxx = fyy = numpy.ones(num_cells, numpy.float64)
     g = numpy.ones(num_cells, numpy.float64)
@@ -197,7 +197,7 @@ def test_exact_with_s(square_mesh):
     fxy = numpy.zeros(num_cells, numpy.float64)
     # assemble the matrix problem
     equ = Ellipt2d(square_mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
-    nodes = square_mesh.get_nodes()
+    nodes = square_mesh.get_points()
     # [(i, x, y), ...]
     boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
     # Dirichlet boundary conditions
@@ -206,7 +206,7 @@ def test_exact_with_s(square_mesh):
     db = {n[0]: n[1] + 2*n[2] for n in boundaryNodes}
     equ.setDirichletBoundaryConditions(db)
     u = equ.solve()
-    uexact = numpy.array([node[0][0] + 2*node[0][1] for node in square_mesh.get_nodes()])
+    uexact = numpy.array([node[0][0] + 2*node[0][1] for node in square_mesh.get_points()])
     assert(numpy.fabs(u - uexact).sum() < 1.e-10)
 
 

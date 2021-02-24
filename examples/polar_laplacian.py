@@ -45,10 +45,10 @@ mesh.set_points(boundpts, markers=boundmarks)
 mesh.set_segments(boundsegs)
 mesh.triangulate(area=0.5)
 
-num_points = mesh.get_num_nodes()
+num_points = mesh.get_num_points()
 num_cells = mesh.get_num_triangles()
 
-nodes = mesh.get_nodes() # [[(x, y), marker], ...]
+nodes = mesh.get_points() # [[(x, y), marker], ...]
 cells = mesh.get_triangles() # [[(i0, i1, i2), (), [a0, a1, ..]], ...]
 
 #
