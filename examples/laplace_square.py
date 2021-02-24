@@ -41,7 +41,7 @@ mesh.set_points(boundpts, markers=boundmarks)
 mesh.set_segments(boundsegs)
 mesh.triangulate(area=0.1)
 
-num_points = mesh.get_num_nodes()
+num_points = mesh.get_num_points()
 num_cells = mesh.get_num_triangles()
 
 #
@@ -61,7 +61,7 @@ equ = ellipt2d.Ellipt2d(mesh, fxx=fxx, fxy=fxy, fyy=fyy, g=g, s=s)
 #
 
 # get all the boundary nodes and store as [(i, x, y), ...]
-nodes = mesh.get_nodes()
+nodes = mesh.get_points()
 boundaryNodes = [(i, nodes[i][0][0], nodes[i][0][1]) for i in range(len(nodes)) if nodes[i][1] == 1]
 # Dirichlet boundary conditions
 dbSouth = {n[0]: 0.0 for n in boundaryNodes if abs(n[2] - 0.) < 1.e-10}

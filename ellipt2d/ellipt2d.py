@@ -19,7 +19,7 @@ class Ellipt2d(object):
         """
         self.grid = grid
 
-        nnodes = grid.get_num_nodes()
+        nnodes = grid.get_num_points()
         ncells = grid.get_num_triangles()
 
         if not (len(fxx) == len(fxy) == len(fyy) == len(g) == ncells):
@@ -32,7 +32,7 @@ class Ellipt2d(object):
         # node: (x, y)
         self.node = {}
 
-        nodes = grid.get_nodes()
+        nodes = grid.get_points()
 
         self.amat = {}
         self.b = numpy.zeros((len(nodes), ), numpy.float64)
@@ -193,14 +193,14 @@ class Ellipt2d(object):
         """
         with open(filename, 'w') as f:
             date = time.ctime( time.time() )
-            nnodes = self.grid.get_num_nodes()
+            nnodes = self.grid.get_num_points()
             ncells = self.grid.get_num_triangles()
             f.write('# vtk DataFile Version 2.0\n')
             f.write(f'produced by Ellipt2d on {date}\n')
             f.write('ASCII\n')
             f.write('DATASET UNSTRUCTURED_GRID\n')
             f.write(f'POINTS {nnodes} DOUBLES\n')
-            for node in self.grid.get_nodes():
+            for node in self.grid.get_points():
                 x, y = node[0][:2]
                 f.write(f'{x} {y} 0.0\n')
             f.write(f'CELLS {ncells} {ncells*4}\n')
